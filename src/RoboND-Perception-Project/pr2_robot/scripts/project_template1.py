@@ -191,7 +191,7 @@ def pr2_mover(object_list):
     print(object_list_param)
     dropbox_param = rospy.get_param('/dropbox')
     # TODO: Parse parameters into individual variables
-    label_dict ={} #dicts are taken as there are key value pairs 
+    labels ={} #dicts are taken as there are key value pairs 
     dropbox_name = {}
     dropbox_pos = {} 
     
@@ -204,10 +204,10 @@ def pr2_mover(object_list):
         #centroids.append(np.mean(points_arr, axis=0)[:3])
         points_arr = ros_to_pcl(object.cloud).to_array()
         print (points_arr)
-        centroid = np.mean(points_arr, axis = 0)[:3]
+        centroid = np.asscalar(np.mean(points_arr, axis = 0)[:3])
         print(centroid)
-        label_dict[object.label] = [np.asscalar(centroid[0]),np.asscalar(centroid[1]),np.asscalar(centroid[2])]
-        print(label_dict)
+        labels[object.label] = [np.asscalar(centroid[0]),np.asscalar(centroid[1]),np.asscalar(centroid[2])]
+        print(labels)
     
     for dropbox in dropbox_param:
     	group = dropbox['group']
@@ -222,7 +222,7 @@ def pr2_mover(object_list):
         #create object_name and position 
         object_name = String()
         object_name.data = name
-        position = label_dict[name]
+        position = labels[name]
         #create pick_pose for the object
         pick_pose = Pose()
         pick_pose.position.x = position[0]
