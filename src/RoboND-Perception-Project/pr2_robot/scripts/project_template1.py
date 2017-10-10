@@ -53,7 +53,7 @@ def pcl_callback(pcl_msg):
     # TODO: Convert ROS msg to PCL data
     cloud = ros_to_pcl(pcl_msg)
 
-    # filter out noise
+    # TODO: Statistical Outlier Filtering
     outlier_filter = cloud.make_statistical_outlier_filter()
     outlier_filter.set_mean_k(50)  
     x = 1.0
@@ -138,7 +138,7 @@ def pcl_callback(pcl_msg):
 
     # Classify the clusters! (loop through each detected cluster one at a time)
     for index, pts_list in enumerate(cluster_indices):
-        # Points for the cluster from the extracted outliers (cloud_objects)
+        # Grab the points for the cluster
         pcl_cluster = extracted_outliers.extract(pts_list) 
         # TODO: convert the cluster from pcl to ROS using helper function
         ros_cluster = pcl_to_ros(pcl_cluster)
@@ -147,7 +147,7 @@ def pcl_callback(pcl_msg):
         normals = get_normals(ros_cluster)
         nhists = compute_normal_histograms(normals)
         feature = np.concatenate((chists, nhists))
-        #labeled_features.append([feature, model_name])
+        
         # Make the prediction, retrieve the label for the result
         # and add it to detected_objects_labels list
         prediction = clf.predict(scaler.transform(feature.reshape(1,-1)))
@@ -181,8 +181,6 @@ def pcl_callback(pcl_msg):
 def pr2_mover(object_list):
 
     # TODO: Initialize variables
-    #labels = []
-    #centroids = []
     test_scene_num = Int32()
     test_scene_num.data = 3 #2 #1 
 
@@ -193,33 +191,39 @@ def pr2_mover(object_list):
     print(object_list_param)
     dropbox_param = rospy.get_param('/dropbox')
     # TODO: Parse parameters into individual variables
-    label_dict ={}
+    label_dict ={} #dicts are taken as there are key value pairs 
     dropbox_name = {}
     dropbox_pos = {} 
+    
+    # TODO: Rotate PR2 in place to capture side tables for the collision map
+
     # TODO: Get the PointCloud for a given object and obtain it's centroid   
     for object in object_list:
+        #labels.append(object.label)
+        #points_arr = ros_to_pcl(object.cloud).to_array()
+        #centroids.append(np.mean(points_arr, axis=0)[:3])
         points_arr = ros_to_pcl(object.cloud).to_array()
+        print (points_arr)
         centroid = np.mean(points_arr, axis = 0)[:3]
+        print(centroid)
         label_dict[object.label] = [np.asscalar(centroid[0]),np.asscalar(centroid[1]),np.asscalar(centroid[2])]
+        print(label_dict)
+    
     for dropbox in dropbox_param:
     	group = dropbox['group']
         dropbox_name[group] = dropbox['name']
         dropbox_pos[group]  = dropbox['position']    
-    # TODO: Rotate PR2 in place to capture side tables for the collision map
-
+    
     # TODO: Loop through the pick list
     dict_list =[]
     for current_object in object_list_param:
     	name = current_object['name']
         group = current_object['group']
-        
-        if name not in label_dict:
-        	print "object not found: ", name
-        	continue
-        print "object found: ", name	
+        #create object_name and position 
         object_name = String()
         object_name.data = name
         position = label_dict[name]
+        #create pick_pose for the object
         pick_pose = Pose()
         pick_pose.position.x = position[0]
         pick_pose.position.y = position[1]
@@ -250,8 +254,9 @@ def pr2_mover(object_list):
             print "Service call failed: %s"%e
 
     # TODO: Output your request parameters into output yaml file
-    send_to_yaml("output_3.yaml", dict_list)
-    print "yaml file produced."
+    yaml_filename = "output_" + str(test_scene_num.data) + ".yaml"
+    send_to_yaml(yaml_filename, dict_list)
+    
 
 
 if __name__ == '__main__':
