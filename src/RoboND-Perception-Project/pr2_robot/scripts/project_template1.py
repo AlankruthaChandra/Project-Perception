@@ -203,11 +203,12 @@ def pr2_mover(object_list):
         #points_arr = ros_to_pcl(object.cloud).to_array()
         #centroids.append(np.mean(points_arr, axis=0)[:3])
         points_arr = ros_to_pcl(object.cloud).to_array()
-        print (points_arr)
+        #print (points_arr)
         centroid = np.asscalar(np.mean(points_arr, axis = 0)[:3])
-        print(centroid)
+        #print(centroid)
+        #np.asscalar() can be applied to only one variable 
         labels[object.label] = [np.asscalar(centroid[0]),np.asscalar(centroid[1]),np.asscalar(centroid[2])]
-        print(labels)
+        #print(labels)
     
     for dropbox in dropbox_param:
     	group = dropbox['group']
