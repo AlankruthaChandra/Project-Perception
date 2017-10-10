@@ -10,15 +10,13 @@ def rgb_to_hsv(rgb_list):
     return hsv_normalized
 
 
-def compute_color_histograms(cloud, using_hsv=False):
-    # type: sensor_msgs.msg.PointCloud2, field is x,y,z,rgb
-    using_hsv = True
+def compute_color_histograms(cloud, using_hsv=True):
     # Compute histograms for the clusters
     point_colors_list = []
 
     # Step through each point in the point cloud
     for point in pc2.read_points(cloud, skip_nans=True):
-        rgb_list = float_to_rgb(point[3]) # list of r,g,b
+        rgb_list = float_to_rgb(point[3]) 
         if using_hsv:
             point_colors_list.append(rgb_to_hsv(rgb_list) * 255)
         else:
